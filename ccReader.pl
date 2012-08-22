@@ -26,7 +26,7 @@ my %opt = (
 	quiet      => 0,
 	debug      => 1,
 	serialPort => "/dev/ttyUSB0",
-	apiURL     => "http://www.example.invalid/",
+	apiURL     => "http://www.example.invalid/powermon",
         apiSalt    => "salt"
 );
 
@@ -51,8 +51,11 @@ GetOptions(
 my %sensors;
 $sensors{'0'}{name} = '1';
 $sensors{'1'}{name} = '2';
-$sensors{'2'}{name} = '3';
-$sensors{'3'}{name} = '4';
+#$sensors{'2'}{name} = '3';
+#$sensors{'3'}{name} = '4';
+
+# Number of retries before borking a data read
+my $MAX_FAILS = 3;
 
 
 ########## Don't change these:
@@ -70,7 +73,7 @@ my $serialObj = Device::SerialPort->new($opt{"serialPort"});
 $serialObj->baudrate(57600);
 $serialObj->write_settings;
 
-# Script variables
+# Script-global variables (ugh)
 my $completeSensors = 0;
 my $failedAttempts = 0;
 
@@ -88,17 +91,17 @@ printText(0, "About to parse data...\n");
 open(SERIAL, "+>$opt{'serialPort'}");
 
 
-# Loop untill we have collected all ofthe sensors data
-while( $completeSensors < keys(%sensors) || $failedAttempts >= 10)
+# Loop until we have collected all of the sensors' data
+while( $completeSensors < keys(%sensors) || $failedAttempts >= $MAX_FAILS )
 {
 	my $line = <SERIAL>;
 #	print($line);
 	parseXML($line);
-	printText(0, "$completeSensors  complete out of " . keys(%sensors) . "\n");		
+	printText(0, "$completeSensors/" . keys(%sensors) . " read\n");		
 }
 
 # Incase we exited the loop due to a failover, lets write something to the log
-if($failedAttempts == 10)
+if( $failedAttempts == $MAX_FAILS )
 {
 	logComment("One of the sensors does not seem to be working, please investigate!");
 
@@ -111,10 +114,17 @@ if($failedAttempts == 10)
 
 while ( (my $key) = each %sensors )
 {
-	$sensors{$key}{url} = $opt{"apiURL"} . '?device=' . $sensors{$key}{name} . '&watts='. $sensors{$key}{watts} . '&temp=' . $sensors{$key}{temp} . '&secID=' . $sensors{$key}{hash} . '&datestamp=' . $dateTime;
+	$sensors{$key}{url} = $opt{"apiURL"} . '?device='
+                            . $sensors{$key}{name}
+                            . '&watts='. $sensors{$key}{watts} 
+                            . '&temp=' . $sensors{$key}{temp} 
+                            . '&secID=' . $sensors{$key}{hash} 
+                            . '&datestamp=' . $dateTime;
+
 	print "sensor: $key, url:  $sensors{$key}{url}\n\n";
 	my $req = GET $sensors{$key}{url};
 	my $res = $ua->request($req);
+
     if ($res->is_success) {
         print $res->content;
     } else {
@@ -157,7 +167,6 @@ sub logComment
 {
 	my $logText = $_[0];
 	print("LOG>> $logText");
-
 }
 
 
@@ -173,10 +182,10 @@ sub parseXML
 	if(exists $sensors{$opt->{sensor}})
 	{
 		# The sensor is in our list, make sure we do not override it
-		unless(exists $sensors{$opt->{sensor}}{watts})
+		unless( exists $sensors{$opt->{sensor}}{watts} )
 		{
 			$sensors{$opt->{sensor}}{watts} = $opt->{ch1}->{watts};
-        	$sensors{$opt->{sensor}}{temp} = $opt->{tmpr};
+			$sensors{$opt->{sensor}}{temp} = $opt->{tmpr};
 			$sensors{$opt->{sensor}}{hash} = md5_hex($opt->{ch1}->{watts} . $opt{"apiSalt"});
 			$completeSensors++;
 			
@@ -185,10 +194,13 @@ sub parseXML
 			printText(1, "Temp:   $sensors{$opt->{sensor}}{temp} \n");
 			printText(1, "Hash:   $sensors{$opt->{sensor}}{hash} \n");
 	
-		}else{
-		printText(0, "You can't add the same sensor twice!\n");
-		$failedAttempts++;
+		} else {
+			# Sssh! We get a message if this exceeds $MAX_FAILS anyway...
+			# printText(0, "You can't add the same sensor twice!\n");
+
+			$failedAttempts++;
 		}
+
 	}
 }
 
