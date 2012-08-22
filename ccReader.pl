@@ -11,49 +11,69 @@ use LWP::Simple;
 use HTTP::Request::Common qw(GET);
 use Digest::MD5 qw(md5_hex);
 use Data::Dumper;
+use Getopt::Long;
 
 
 ####################################################################################
 
 
+
+
+############################ Command-line option parsing ###########################
+
+my %opt = (
+	help       => 0,
+	quiet      => 0,
+	debug      => 1,
+	serialPort => "/dev/ttyUSB0",
+	apiURL     => "http://www.example.invalid/",
+        apiSalt    => "salt"
+);
+
+GetOptions(
+	'help'         => \$opt{"help"},
+	'quiet'        => \$opt{"quiet"},
+	'debug'        => \$opt{"debug"},
+	'serialPort=s' => \$opt{"serialPort"}, # The serial port the EnviR is connected to
+	'apiURL=s'     => \$opt{"apiURL"},     # The URL to the web API
+	'apiSalt=s'    => \$opt{"apiSalt"}     # The salt for basic verification
+);
+
+
+####################################################################################
+
+
+
+
 ######################## Variables you might want to change ########################
-
-# Debug mode
-my $DEBUG = 1;
-
-# The USB serial port that the CurrentCost EnviR is connected to
-my $serialPort = "/dev/ttyUSB0";
 
 # The sensors that you have paired with the EnviR
 my %sensors;
-#$sensors{'0'}{name} = '1';
-#$sensors{'1'}{name} = '2';
+$sensors{'0'}{name} = '1';
+$sensors{'1'}{name} = '2';
 $sensors{'2'}{name} = '3';
 $sensors{'3'}{name} = '4';
 
-# The URL to the API
-my $apiURL = "URL";
-my $ua = LWP::UserAgent->new;
 
-# The Salt for the basic verification
-my $apiSalt = "salt";
+########## Don't change these:
 
-#Date time 
+# Date time 
 my $date = strftime('%Y-%m-%d',localtime );
 my $time = strftime('%T',localtime );
 my $dateTime = ("$date $time");	
 
+# User agent for LWP
+my $ua = LWP::UserAgent->new;
 
-########## Do not change
+# Serial port stuff
+my $serialObj = Device::SerialPort->new($opt{"serialPort"});
+$serialObj->baudrate(57600);
+$serialObj->write_settings;
 
+# Script variables
 my $completeSensors = 0;
 my $failedAttempts = 0;
 
-
-## Serial port stuff
-my $serialObj = Device::SerialPort->new($serialPort);
-$serialObj->baudrate(57600);
-$serialObj->write_settings;
 
 ####################################################################################
 
@@ -65,7 +85,7 @@ $serialObj->write_settings;
 printText(0, "CurrentCost Envir XML Parser V1.0\n\n");
 printText(0, "About to parse data...\n");
 
-open(SERIAL, "+>$serialPort");
+open(SERIAL, "+>$opt{'serialPort'}");
 
 
 # Loop untill we have collected all ofthe sensors data
@@ -91,7 +111,7 @@ if($failedAttempts == 10)
 
 while ( (my $key) = each %sensors )
 {
-	$sensors{$key}{url} = $apiURL . '?device=' . $sensors{$key}{name} . '&watts='. $sensors{$key}{watts} . '&temp=' . $sensors{$key}{temp} . '&secID=' . $sensors{$key}{hash} . '&datestamp=' . $dateTime;
+	$sensors{$key}{url} = $opt{"apiURL"} . '?device=' . $sensors{$key}{name} . '&watts='. $sensors{$key}{watts} . '&temp=' . $sensors{$key}{temp} . '&secID=' . $sensors{$key}{hash} . '&datestamp=' . $dateTime;
 	print "sensor: $key, url:  $sensors{$key}{url}\n\n";
 	my $req = GET $sensors{$key}{url};
 	my $res = $ua->request($req);
@@ -109,6 +129,8 @@ while ( (my $key) = each %sensors )
 
 ####################################################################################
 
+
+
 #################################### Functions #####################################
 
 #  Print text to the screen
@@ -123,9 +145,9 @@ sub printText
 	
 	if($debugLevel == 1)
 	{
-		if($DEBUG == 1)
+		if($opt{"debug"} == 1)
 		{
-		print($text);
+			print($text);
 		}
 	
 	}
@@ -155,7 +177,7 @@ sub parseXML
 		{
 			$sensors{$opt->{sensor}}{watts} = $opt->{ch1}->{watts};
         	$sensors{$opt->{sensor}}{temp} = $opt->{tmpr};
-			$sensors{$opt->{sensor}}{hash} = md5_hex($opt->{ch1}->{watts} . $apiSalt);
+			$sensors{$opt->{sensor}}{hash} = md5_hex($opt->{ch1}->{watts} . $opt{"apiSalt"});
 			$completeSensors++;
 			
 			printText(1, "Sensor: $opt->{sensor}\n");
