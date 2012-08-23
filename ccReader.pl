@@ -13,7 +13,6 @@ use Digest::MD5 qw(md5_hex);
 use Data::Dumper;
 use Getopt::Long;
 
-
 ####################################################################################
 
 
@@ -21,24 +20,23 @@ use Getopt::Long;
 
 ############################ Command-line option parsing ###########################
 
-my %opt = (
+my %option = (
 	help       => 0,
 	quiet      => 0,
-	debug      => 1,
+	debug      => 0,
 	serialPort => "/dev/ttyUSB0",
 	apiURL     => "http://www.example.invalid/powermon",
         apiSalt    => "salt"
 );
 
 GetOptions(
-	'help'         => \$opt{"help"},
-	'quiet'        => \$opt{"quiet"},
-	'debug'        => \$opt{"debug"},
-	'serialPort=s' => \$opt{"serialPort"}, # The serial port the EnviR is connected to
-	'apiURL=s'     => \$opt{"apiURL"},     # The URL to the web API
-	'apiSalt=s'    => \$opt{"apiSalt"}     # The salt for basic verification
+	'help'         => \$option{"help"},       # Display POD help (not yet implemented)
+	'quiet'        => \$option{"quiet"},      # Ssssh! Don't print anything to command line
+	'debug'        => \$option{"debug"},      # Enable printing of debugging data
+	'serialPort=s' => \$option{"serialPort"}, # The serial port the EnviR is connected to
+	'apiURL=s'     => \$option{"apiURL"},     # The URL to the web API
+	'apiSalt=s'    => \$option{"apiSalt"}     # The salt for basic verification
 );
-
 
 ####################################################################################
 
@@ -69,14 +67,13 @@ my $dateTime = ("$date $time");
 my $ua = LWP::UserAgent->new;
 
 # Serial port stuff
-my $serialObj = Device::SerialPort->new($opt{"serialPort"});
+my $serialObj = Device::SerialPort->new($option{"serialPort"});
 $serialObj->baudrate(57600);
 $serialObj->write_settings;
 
 # Script-global variables (ugh)
 my $completeSensors = 0;
 my $failedAttempts = 0;
-
 
 ####################################################################################
 
@@ -85,56 +82,54 @@ my $failedAttempts = 0;
 
 ####################################### MAIN #######################################
 
-printText(0, "CurrentCost Envir XML Parser V1.0\n\n");
-printText(0, "About to parse data...\n");
+printLine(0, "CurrentCost Envir XML Parser V1.0\n");
+printLine(0, "About to parse data...");
 
-open(SERIAL, "+>$opt{'serialPort'}");
+open(SERIAL, "+>$option{'serialPort'}");
 
 
 # Loop until we have collected all of the sensors' data
 while( $completeSensors < keys(%sensors) || $failedAttempts >= $MAX_FAILS )
 {
 	my $line = <SERIAL>;
-#	print($line);
+	printLine(1, $line);
 	parseXML($line);
-	printText(0, "$completeSensors/" . keys(%sensors) . " read\n");		
+	
+	if( $failedAttempts > 0 ) {
+		printLine(0, "$failedAttempts/$MAX_FAILS attempts");
+	}
+	printLine(0, "$completeSensors/" . keys(%sensors) . " read");		
 }
 
-# Incase we exited the loop due to a failover, lets write something to the log
-if( $failedAttempts == $MAX_FAILS )
-{
-	logComment("One of the sensors does not seem to be working, please investigate!");
+# In case we exited the loop due to a failover, let's write something to the log
+if( $failedAttempts == $MAX_FAILS ) {
+	printLine("One of the sensors does not seem to be working, please investigate!");
 
 }
+
 # We should now have a complete set of data
+printLine(1, Dumper(%sensors));
 
-#print Dumper(%sensors);
-
-# Generating the URLS
-
+# Generate the URLS
 while ( (my $key) = each %sensors )
 {
-	$sensors{$key}{url} = $opt{"apiURL"} . '?device='
-                            . $sensors{$key}{name}
-                            . '&watts='. $sensors{$key}{watts} 
+	$sensors{$key}{url} = $option{"apiURL"} 
+                            . '?device=' . $sensors{$key}{name}
+                            . '&watts=' . $sensors{$key}{watts} 
                             . '&temp=' . $sensors{$key}{temp} 
                             . '&secID=' . $sensors{$key}{hash} 
                             . '&datestamp=' . $dateTime;
 
-	print "sensor: $key, url:  $sensors{$key}{url}\n\n";
+	printLine(1, "sensor: $key, url:  $sensors{$key}{url}");
 	my $req = GET $sensors{$key}{url};
 	my $res = $ua->request($req);
 
     if ($res->is_success) {
-        print $res->content;
+        printLine(1, $res->content);
     } else {
-        print $res->status_line . "\n";
+        printLine(1, $res->status_line);
     }
-	print("\n");
-	}
-
-
-
+}
 
 
 ####################################################################################
@@ -143,68 +138,65 @@ while ( (my $key) = each %sensors )
 
 #################################### Functions #####################################
 
-#  Print text to the screen
-sub printText
+# Print text to the screen
+# Params:
+#   $debugLevel (integer)
+#	0 to ALWAYS print this string
+#	any other integer will only print in debug mode
+#   $text
+#	The string to log to the console
+#
+sub printLine
 {
 	my $debugLevel = $_[0];
 	my $text = $_[1];
-	if($debugLevel  == 0)
-	{
-		print($text);
-	}
-	
-	if($debugLevel == 1)
-	{
-		if($opt{"debug"} == 1)
-		{
-			print($text);
-		}
-	
-	}
-}
 
-sub logComment
-{
-	my $logText = $_[0];
-	print("LOG>> $logText");
+	if( ! $option{"quiet"} ) { # If we're being quiet, don't write to console
+
+		if( $debugLevel == 0 ) { 	# Print normal output
+			print($text . "\n");
+		} 
+		elsif( $option{"debug"} == 1 ) { 
+						# Any other output will only be  
+			print($text . "\n");	#  printed if the --debug flag is 
+		}				#  supplied on the command line.
+	}
 }
 
 
 # Recieve an XML string and save the relevant data to the sensor hashmap
 sub parseXML
 {
-	my $xmlString = $_[0];
+	my $xmlString = shift;
 	
 	my $opt = XMLin($xmlString);
 
 	# Now we need to enter the data into the hash map
 	# Does this sensor exist in our hash?
-	if(exists $sensors{$opt->{sensor}})
+	if( exists $sensors{$opt->{sensor}} )
 	{
 		# The sensor is in our list, make sure we do not override it
 		unless( exists $sensors{$opt->{sensor}}{watts} )
 		{
 			$sensors{$opt->{sensor}}{watts} = $opt->{ch1}->{watts};
 			$sensors{$opt->{sensor}}{temp} = $opt->{tmpr};
-			$sensors{$opt->{sensor}}{hash} = md5_hex($opt->{ch1}->{watts} . $opt{"apiSalt"});
+			$sensors{$opt->{sensor}}{hash} = md5_hex($opt->{ch1}->{watts} . $option{"apiSalt"});
 			$completeSensors++;
 			
-			printText(1, "Sensor: $opt->{sensor}\n");
-			printText(1, "Watts:  $sensors{$opt->{sensor}}{watts} \n");
-			printText(1, "Temp:   $sensors{$opt->{sensor}}{temp} \n");
-			printText(1, "Hash:   $sensors{$opt->{sensor}}{hash} \n");
+			printLine(1, "Sensor: $opt->{sensor}");
+			printLine(1, "Watts:  $sensors{$opt->{sensor}}{watts}");
+			printLine(1, "Temp:   $sensors{$opt->{sensor}}{temp}");
+			printLine(1, "Hash:   $sensors{$opt->{sensor}}{hash}");
 	
 		} else {
 			# Sssh! We get a message if this exceeds $MAX_FAILS anyway...
-			# printText(0, "You can't add the same sensor twice!\n");
+			# printLine(0, "You can't add the same sensor twice!");
 
 			$failedAttempts++;
 		}
 
 	}
 }
-
-
 
 
 ####################################################################################
