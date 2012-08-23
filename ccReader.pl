@@ -71,9 +71,11 @@ my $serialObj = Device::SerialPort->new($option{"serialPort"});
 $serialObj->baudrate(57600);
 $serialObj->write_settings;
 
-# Script-global variables (ugh)
+# Script variables
 my $completeSensors = 0;
 my $failedAttempts = 0;
+my $sentValues = 0;
+
 
 ####################################################################################
 
@@ -96,7 +98,7 @@ while( $completeSensors < keys(%sensors) || $failedAttempts >= $MAX_FAILS )
 	parseXML($line);
 	
 	if( $failedAttempts > 0 ) {
-		printLine(0, "$failedAttempts/$MAX_FAILS attempts");
+		printLine(0, "$failedAttempts/$MAX_FAILS failures");
 	}
 	printLine(0, "$completeSensors/" . keys(%sensors) . " read");
 
@@ -111,12 +113,20 @@ if( $failedAttempts == $MAX_FAILS ) {
 }
 
 # We should now have a complete set of data
-#printLine(1, Dumper(%sensors));
+#print Dumper(%sensors);
+
+
+printLine(0, "Sending values...");
 
 # Generate the URLS
-while ( (my $key) = each %sensors )
+#while ( (my $key) = each %sensors )
+foreach my $key (sort keys %sensors)
 {
-	printLine(0, "Sending values...");
+	# Skip if we don't have any data for this sensor
+	if( ! defined $sensors{$key}{watts} ) {
+		printLine(0, "Skipping sensor \"$sensors{$key}{name}\", no data...");
+		next;
+	}
 
 	# Construct the URL
 	$sensors{$key}{url} = $option{"apiURL"} 
@@ -126,7 +136,7 @@ while ( (my $key) = each %sensors )
                             . '&secID=' . $sensors{$key}{hash} 
                             . '&datestamp=' . $dateTime;
 
-	printLine(1, "\nSensor: $key, URL:  $sensors{$key}{url}\n");
+	printLine(1, "\nSensor: $key, URL: $sensors{$key}{url}\n");
 
 	# Perform the GET request
 	my $req = GET $sensors{$key}{url};
@@ -136,7 +146,10 @@ while ( (my $key) = each %sensors )
 		printLine(1, $res->content);
 	} else {
 		printLine(1, $res->status_line);
-    	}
+   	}
+
+	$sentValues++;
+	printLine(0, "$sentValues/" . keys(%sensors) . " sent");
 }
 
 printLine(0, "Done!");
@@ -179,6 +192,11 @@ sub parseXML
 	my $xmlString = shift;
 	
 	my $opt = XMLin($xmlString);
+
+	if ( defined $opt->{hist} ) {
+		printLine(1, "Received history XML. Feature not implemented. Skipping.");
+		return;
+	}
 
 	# Now we need to enter the data into the hash map
 	# Does this sensor exist in our hash?
