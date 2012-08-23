@@ -47,10 +47,10 @@ GetOptions(
 
 # The sensors that you have paired with the EnviR
 my %sensors;
-$sensors{'0'}{name} = '1';
-$sensors{'1'}{name} = '2';
-#$sensors{'2'}{name} = '3';
-#$sensors{'3'}{name} = '4';
+$sensors{'0'}{name} = '0';
+$sensors{'1'}{name} = '1';
+$sensors{'2'}{name} = '2';
+$sensors{'3'}{name} = '3';
 
 # Number of retries before borking a data read
 my $MAX_FAILS = 3;
@@ -92,27 +92,33 @@ open(SERIAL, "+>$option{'serialPort'}");
 while( $completeSensors < keys(%sensors) || $failedAttempts >= $MAX_FAILS )
 {
 	my $line = <SERIAL>;
-	printLine(1, $line);
+	printLine(1, "\nReceived:\n" . $line);
 	parseXML($line);
 	
 	if( $failedAttempts > 0 ) {
 		printLine(0, "$failedAttempts/$MAX_FAILS attempts");
 	}
-	printLine(0, "$completeSensors/" . keys(%sensors) . " read");		
+	printLine(0, "$completeSensors/" . keys(%sensors) . " read");
+
+	# Break out of the loop if we're never going to get the missing sensors
+	last if( $failedAttempts == $MAX_FAILS );
 }
 
 # In case we exited the loop due to a failover, let's write something to the log
 if( $failedAttempts == $MAX_FAILS ) {
-	printLine("One of the sensors does not seem to be working, please investigate!");
+	printLine(0, "One or more sensors did not provide a reading- they could be turned off so we'll skip them.");
 
 }
 
 # We should now have a complete set of data
-printLine(1, Dumper(%sensors));
+#printLine(1, Dumper(%sensors));
 
 # Generate the URLS
 while ( (my $key) = each %sensors )
 {
+	printLine(0, "Sending values...");
+
+	# Construct the URL
 	$sensors{$key}{url} = $option{"apiURL"} 
                             . '?device=' . $sensors{$key}{name}
                             . '&watts=' . $sensors{$key}{watts} 
@@ -120,17 +126,20 @@ while ( (my $key) = each %sensors )
                             . '&secID=' . $sensors{$key}{hash} 
                             . '&datestamp=' . $dateTime;
 
-	printLine(1, "sensor: $key, url:  $sensors{$key}{url}");
+	printLine(1, "\nSensor: $key, URL:  $sensors{$key}{url}\n");
+
+	# Perform the GET request
 	my $req = GET $sensors{$key}{url};
 	my $res = $ua->request($req);
 
-    if ($res->is_success) {
-        printLine(1, $res->content);
-    } else {
-        printLine(1, $res->status_line);
-    }
+	if ($res->is_success) {
+		printLine(1, $res->content);
+	} else {
+		printLine(1, $res->status_line);
+    	}
 }
 
+printLine(0, "Done!");
 
 ####################################################################################
 
@@ -189,10 +198,9 @@ sub parseXML
 			printLine(1, "Hash:   $sensors{$opt->{sensor}}{hash}");
 	
 		} else {
-			# Sssh! We get a message if this exceeds $MAX_FAILS anyway...
-			# printLine(0, "You can't add the same sensor twice!");
 
 			$failedAttempts++;
+			printLine(1, "Sensor: $opt->{sensor} (already read)");
 		}
 
 	}
