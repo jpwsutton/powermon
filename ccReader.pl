@@ -12,6 +12,7 @@ use HTTP::Request::Common qw(GET);
 use Digest::MD5 qw(md5_hex);
 use Data::Dumper;
 use Getopt::Long;
+use Pod::Usage;
 
 ####################################################################################
 
@@ -30,13 +31,16 @@ my %option = (
 );
 
 GetOptions(
-	'help'         => \$option{"help"},       # Display POD help (not yet implemented)
+	'help'         => \$option{"help"},       # Display POD help documentation
 	'quiet'        => \$option{"quiet"},      # Ssssh! Don't print anything to command line
 	'debug'        => \$option{"debug"},      # Enable printing of debugging data
 	'serialPort=s' => \$option{"serialPort"}, # The serial port the EnviR is connected to
 	'apiURL=s'     => \$option{"apiURL"},     # The URL to the web API
 	'apiSalt=s'    => \$option{"apiSalt"}     # The salt for basic verification
 );
+
+# If parameter --help was provided, show the help POD
+pod2usage() if ($option{"help"});
 
 ####################################################################################
 
@@ -119,7 +123,6 @@ if( $failedAttempts == $MAX_FAILS ) {
 printLine(0, "Sending values...");
 
 # Generate the URLS
-#while ( (my $key) = each %sensors )
 foreach my $key (sort keys %sensors)
 {
 	# Skip if we don't have any data for this sensor
@@ -187,6 +190,9 @@ sub printLine
 
 
 # Recieve an XML string and save the relevant data to the sensor hashmap
+# Params:
+#   $xmlString
+#	The string to parse, read from the serial stream
 sub parseXML
 {
 	my $xmlString = shift;
@@ -226,3 +232,55 @@ sub parseXML
 
 
 ####################################################################################
+
+
+
+################################# Documentation ####################################
+
+
+__END__
+
+=head1 NAME
+
+ccReader.pl - Parse XML data from the CurrentCost EnviR energy monitor, and submit
+              it to an online service, usually a PHP script.
+
+
+=head1 SYNOPSIS
+
+perl ccReader.pl [options]
+
+	Options:
+	  -help        - Display this help and exit
+	  -quiet       - Don't print anything to the command line 
+	  -debug       - Enable printing of debugging data
+	  -serialPort  - The serial port the EnviR is connected to
+                         Defaults to /dev/ttyUSB0.
+	  -apiURL      - The URL of the web API to submit data to
+	  -apiSalt     - The salt to use for basic verification
+
+
+=head2 DESCRIPTION
+
+This script reads data from a CurrentCost EnviR energy monitor, processes the XML,
+and submits it to a web service over HTTP.
+
+XML messages are read from the serial connection, matched to the sensors defined 
+at the top of the script, then a URL is constructed containing the returned data.
+
+If a sensor is turned off or otherwise not available, the script will give up after
+a specified number of attempts, and will skip submitting data for it. This allows
+sensors to be turned off with their connected appliances, without affecting the
+submission of data for other sensors.
+
+The EnviR produces history messages at certain intervals. These are currently
+ignored, but it would be possible to implement a feature to submit these as a data
+bundle.
+
+
+=head1 AUTHOR
+
+James Sutton - Original script
+Sam Mitchell Finnigan - Bugfixes, additional features and documentation
+
+=cut
