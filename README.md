@@ -4,12 +4,11 @@ powermon
 Power Monitoring for Current Cost EnviR
 
 
-
 This project consists of a number of different scripts, some or all of which we hope
 will be useful to the wider community.
 
 ccReader.pl
-===========
+-----------
 
 A Perl script, which runs on the client directly connected to the EnviR and sends
 data read over the USB serial connector to a set of PHP scripts running on a server,
@@ -31,14 +30,14 @@ A full list of options can be obtained by running `perl ccReader.pl --help`.
 
 
 Author
-======
+------
 
 James Sutton
      - Original script author
 
 
 Contributors
-============
+------------
 
 Sam Mitchell Finnigan
      - Bugfixes, development, and documentation
