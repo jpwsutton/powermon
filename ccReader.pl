@@ -27,7 +27,7 @@ my %option = (
 	debug      => 0,
 	serialPort => "/dev/ttyUSB0",
 	apiURL     => "http://www.example.invalid/powermon",
-        apiSalt    => "salt"
+	apiSalt    => "salt"
 );
 
 GetOptions(
@@ -74,9 +74,9 @@ my $ua = LWP::UserAgent->new;
 my $serialObj = Device::SerialPort->new($option{"serialPort"});
 
 if (! defined $serialObj) {
-        printLine(0, "Error: $option{'serialPort'} doesn't exist.");
-        printLine(0, "Check settings, or try re-seating the EnviR USB connector.");
-        exit(1);
+	printLine(0, "Error: $option{'serialPort'} doesn't exist.");
+	printLine(0, "Check settings, or try re-seating the EnviR USB connector.");
+	exit(1);
 }
 
 $serialObj->baudrate(57600);
@@ -95,7 +95,7 @@ my $sentValues = 0;
 
 ####################################### MAIN #######################################
 
-printLine(0, "CurrentCost Envir XML Parser V1.0\n");
+printLine(0, "CurrentCost Envir XML Parser V1.0 on $date\n");
 printLine(1, "Running with --debug on. Output will be more verbose.");
 printLine(0, "About to parse data...");
 
@@ -175,22 +175,27 @@ printLine(0, "Done!");
 #	any other integer will only print in debug mode
 #   $text
 #	The string to log to the console
-#
+# Returns:
+#   1 if the text was printed
+#   0 if it was not
 sub printLine
 {
 	my $debugLevel = $_[0];
 	my $text = $_[1];
+	my $now  = strftime "%H:%M:%S", localtime;
 
 	if( ! $option{"quiet"} ) { # If we're being quiet, don't write to console
 
-		if( $debugLevel == 0 ) { 	# Print normal output
-			print($text . "\n");
+		if( $debugLevel == 0 ) {
+			printf("[%s] %s\n", $now, $text); # Print normal output
+			return 1;
 		} 
-		elsif( $option{"debug"} == 1 ) { 
-						# Any other output will only be  
-			print($text . "\n");	#  printed if the --debug flag is 
-		}				#  supplied on the command line.
+		elsif( $option{"debug"} == 1 ) {
+			printf("[%s] %s\n", $now, $text); # Any other output will only be
+			return 1;			  #  printed if the --debug flag is 
+		}					  #  supplied on the command line.
 	}
+	return 0;
 }
 
 
