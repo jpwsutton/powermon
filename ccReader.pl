@@ -57,7 +57,7 @@ $sensors{'2'}{name} = '2';
 $sensors{'3'}{name} = '3';
 
 # Number of retries before borking a data read
-my $MAX_FAILS = 3;
+my $MAX_FAILS = 5;
 
 
 ########## Don't change these:
@@ -72,6 +72,13 @@ my $ua = LWP::UserAgent->new;
 
 # Serial port stuff
 my $serialObj = Device::SerialPort->new($option{"serialPort"});
+
+if (! defined $serialObj) {
+        printLine(0, "Error: $option{'serialPort'} doesn't exist.");
+        printLine(0, "Check settings, or try re-seating the EnviR USB connector.");
+        exit(1);
+}
+
 $serialObj->baudrate(57600);
 $serialObj->write_settings;
 
@@ -89,6 +96,7 @@ my $sentValues = 0;
 ####################################### MAIN #######################################
 
 printLine(0, "CurrentCost Envir XML Parser V1.0\n");
+printLine(1, "Running with --debug on. Output will be more verbose.");
 printLine(0, "About to parse data...");
 
 open(SERIAL, "+>$option{'serialPort'}");
@@ -101,9 +109,6 @@ while( $completeSensors < keys(%sensors) || $failedAttempts >= $MAX_FAILS )
 	printLine(1, "\nReceived:\n" . $line);
 	parseXML($line);
 	
-	if( $failedAttempts > 0 ) {
-		printLine(0, "$failedAttempts/$MAX_FAILS failures");
-	}
 	printLine(0, "$completeSensors/" . keys(%sensors) . " read");
 
 	# Break out of the loop if we're never going to get the missing sensors
@@ -224,6 +229,8 @@ sub parseXML
 		} else {
 
 			$failedAttempts++;
+
+			printLine(0, "$failedAttempts/$MAX_FAILS failures");
 			printLine(1, "Sensor: $opt->{sensor} (already read)");
 		}
 
