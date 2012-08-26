@@ -8,6 +8,15 @@
  *
  */
 $(function() {
+
+	$.getScript("js/config.js", function(){
+
+		config.runCallback(power_history_main);
+	});
+
+});
+
+function power_history_main(devices) {
 	
 	
 		// Compare two series results on their name label (custom sort handler)
@@ -49,9 +58,7 @@ $(function() {
 	//URL
 	var POWER_HIST_URL = "includes/get_power_history.php";
 	
-	var weekTotalEnergyURL = POWER_HIST_URL + "?mode=watts&startDate=" 
-							+ weekStartDate + "%2000:00:00&endDate=" 
-							+ weekEndDate + "%2000:00:00&device=main";
+	var weekTotalEnergyURL = POWER_HIST_URL + "?mode=watts&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=" + devices[0];
 	//console.log(weekTotalEnergyURL);
 	// weekTotalEnergy Options
 
@@ -89,7 +96,7 @@ $(function() {
 	var alreadyFetched = {};
 
 	// then fetch the data with jQuery
-	function onDataReceived_weendakTotalEnergyOptions(series) {
+	function onDataReceived_weekTotalEnergyOptions(series) {
 
 		// extract the first coordinate pair so you can see that
 		// data is now an ordinary Javascript object
@@ -143,7 +150,7 @@ $(function() {
 	var monthEndDate = Date.today().clearTime().moveToLastDayOfMonth().toString("yyyy-MM-dd");
 
 	//URL
-	var monthTotalEnergyURL = POWER_HIST_URL + "?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=main";
+	var monthTotalEnergyURL = POWER_HIST_URL + "?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=" + devices[0];
 	//console.log(monthTotalEnergyURL);
 	// weekTotalEnergy Options
 
@@ -234,7 +241,7 @@ $(function() {
 	var yearEndDate = Date.today().clearTime().toString("yyyy") + "-12-31";
 
 	//URL
-	var yearTotalEnergyURL = POWER_HIST_URL + "?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=main";
+	var yearTotalEnergyURL = POWER_HIST_URL + "?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=" + devices[0];
 	//console.log(yearTotalEnergyURL);
 	// weekTotalEnergy Options
 
@@ -323,10 +330,13 @@ $(function() {
 	
 	//URL
 
-	var weekApplianceEnergyURLs = [POWER_HIST_URL + "?mode=watts&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=james-pc",
-	                               POWER_HIST_URL + "?mode=watts&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=james-other",
-	                               POWER_HIST_URL + "?mode=watts&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=sam-pc"];
-
+	var weekApplianceEnergyURLs = [];
+	
+	
+	for(var i in devices) {
+		weekApplianceEnergyURLs.push(POWER_HIST_URL + "?mode=watts&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=" + devices[i]);
+	}
+	
 	var weekAppliancedone = 0;
 	var weekAppliancecolourCount = 1;
 	
@@ -402,10 +412,12 @@ $(function() {
 	
 	//URL
 
-	var monthApplianceEnergyURLs = [POWER_HIST_URL + "?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=james-pc",
-	                                POWER_HIST_URL + "?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=james-other",
-	                                POWER_HIST_URL + "?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=sam-pc"];
-
+	var monthApplianceEnergyURLs = [];
+	
+	for(var i in devices) {
+		monthApplianceEnergyURLs.push(POWER_HIST_URL + "?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=" + devices[i]);
+	}
+	
 	var monthAppliancedone = 0;
 	var monthAppliancecolourCount = 1;
 	
@@ -482,10 +494,12 @@ $(function() {
 	
 	//URL
 
-	var yearApplianceEnergyURLs = [POWER_HIST_URL + "?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=james-pc",
-	                               POWER_HIST_URL + "?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=james-other",
-	                               POWER_HIST_URL + "?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=sam-pc"];
-
+	var yearApplianceEnergyURLs = [];
+	
+	for(var i in devices) {
+		yearApplianceEnergyURLs.push(POWER_HIST_URL + "?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=" +devices[i]);
+	}
+	
 	var yearAppliancedone = 0;
 	var yearAppliancecolourCount = 1;
 	
@@ -564,7 +578,7 @@ $(function() {
 	
 	//URL
 
-	var weektempURLs = [POWER_HIST_URL + "?mode=temp&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=main"];
+	var weektempURLs = [POWER_HIST_URL + "?mode=temp&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=" + devices[0]];
 
 	var weektempdone = 0;
 	var weektempcolourCount = 4;
@@ -642,7 +656,7 @@ $(function() {
 
 	//URL
 
-	var monthtempURLs = [POWER_HIST_URL + "?mode=temp&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=main"];
+	var monthtempURLs = [POWER_HIST_URL + "?mode=temp&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=" + devices[0]];
 
 	var monthtempdone = 0;
 	var monthtempcolourCount = 4;
@@ -720,7 +734,7 @@ $(function() {
 
 	//URL
 
-	var yeartempURLs = [POWER_HIST_URL + "?mode=temp&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=main"];
+	var yeartempURLs = [POWER_HIST_URL + "?mode=temp&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=" + devices[0]];
 
 	var yeartempdone = 0;
 	var yeartempcolourCount = 4;
@@ -787,9 +801,7 @@ $(function() {
 
 	for ( tempURL in yeartempURLs ) {
 
-
 		$.ajax({url: yeartempURLs[tempURL], method: 'GET', dataType: 'json', success: yeartemponDataReceived });
-
 	}
 
 
@@ -799,4 +811,4 @@ $(function() {
 
 	console.log("power_history_main.js executed in " + executionTime + " milliseconds");	
 
-});
+}
