@@ -1,8 +1,8 @@
 <?php
 
 //Connect To Database
-require_once ($_SERVER['DOCUMENT_ROOT'] . "/includes/constants.php");
-$conn = new mysqli(POWERMON_DB_SERVER, POWERMON_DB_USER, POWERMON_DB_PASSWORD, POWERMON_DB_NAME) or 
+require_once ($_SERVER['DOCUMENT_ROOT'] . "/includes/constants.inc");
+$conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME) or 
 					  die('There was a problem connecting to the database.');
 					  
 					  

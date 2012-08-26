@@ -1,5 +1,5 @@
 <?php
-require_once ($_SERVER['DOCUMENT_ROOT'] . "/includes/constants.php");
+require_once ($_SERVER['DOCUMENT_ROOT'] . "/includes/constants.inc");
 require_once 'power_mysql.php';
 
 $power_mysql = new power_mysql();
@@ -11,7 +11,7 @@ $watts = $_GET['watts'];
 $temp = $_GET['temp'];
 $secID = $_GET['secID'];
 
-//Authorise the data using the salt from constants.php
+//Authorise the data using the salt from constants.inc
 $myMD5 = md5($watts . API_UPLOAD_SALT);
 
 if ($secID == $myMD5) {

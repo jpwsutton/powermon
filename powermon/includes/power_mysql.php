@@ -1,5 +1,5 @@
 <?php
-require_once ($_SERVER['DOCUMENT_ROOT'] . "/includes/constants.php");
+require_once ($_SERVER['DOCUMENT_ROOT'] . "/includes/constants.inc");
 
 class power_mysql {
 	private $conn;
