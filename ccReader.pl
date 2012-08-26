@@ -13,6 +13,7 @@ use Digest::MD5 qw(md5_hex);
 use Data::Dumper;
 use Getopt::Long;
 use Pod::Usage;
+use Config::Tiny;
 
 ####################################################################################
 
@@ -25,6 +26,7 @@ my %option = (
 	help       => 0,
 	quiet      => 0,
 	debug      => 0,
+	config     => undef,
 	serialPort => "/dev/ttyUSB0",
 	apiURL     => "http://www.example.invalid/powermon",
 	apiSalt    => "salt"
@@ -34,6 +36,7 @@ GetOptions(
 	'help'         => \$option{"help"},       # Display POD help documentation
 	'quiet'        => \$option{"quiet"},      # Ssssh! Don't print anything to command line
 	'debug'        => \$option{"debug"},      # Enable printing of debugging data
+	'config=s'     => \$option{"config"},     # Location of the config file to use for sensors
 	'serialPort=s' => \$option{"serialPort"}, # The serial port the EnviR is connected to
 	'apiURL=s'     => \$option{"apiURL"},     # The URL to the web API
 	'apiSalt=s'    => \$option{"apiSalt"}     # The salt for basic verification
@@ -47,17 +50,43 @@ pod2usage() if ($option{"help"});
 
 
 
-######################## Variables you might want to change ########################
-
-# The sensors that you have paired with the EnviR
-my %sensors;
-$sensors{'0'}{name} = '0';
-$sensors{'1'}{name} = '1';
-$sensors{'2'}{name} = '2';
-$sensors{'3'}{name} = '3';
+########################### Set up variables for script ############################
 
 # Number of retries before borking a data read
 my $MAX_FAILS = 5;
+my $MAX_SENSORS = 9;
+
+# The sensors that you have paired with the EnviR
+my %sensors;
+
+# Read the configuration file for sensor names, if one was defined
+if( defined $option{"config"} ) {
+
+	printLine(1, "Reading sensors from config file $option{'config'}...");
+
+	my $config = Config::Tiny->new;                             # Create config object
+	$config = Config::Tiny->read( $option{"config"} );          # Open the config
+
+	my $prefix = "sensor";                                      # Prefix for sensor no. in config
+
+	for(my $i=0; $i < $MAX_SENSORS; $i++) {                       # Loop through the possible sensors
+		my $sensor = $config->{sensors}->{"$prefix$i"};
+
+		if(defined $sensor) {
+			$sensors{$i}{name} = $sensor;               # Define sensor in script when found
+			printLine(1, "Found sensor on $i, named \"$sensor\"");
+		}
+	}
+
+} 
+else {	# If no config was defined, just set to default:
+	printLine(0, "No config defined. Using default numeric sensor names");
+
+	$sensors{'0'}{name} = '0';
+	$sensors{'1'}{name} = '1';
+	$sensors{'2'}{name} = '2';
+	$sensors{'3'}{name} = '3';
+}
 
 
 ########## Don't change these:
@@ -266,6 +295,7 @@ perl ccReader.pl [options]
 	  -help        - Display this help and exit
 	  -quiet       - Don't print anything to the command line 
 	  -debug       - Enable printing of debugging data
+          -config      - Read sensor names from configuration file
 	  -serialPort  - The serial port the EnviR is connected to
                          Defaults to /dev/ttyUSB0.
 	  -apiURL      - The URL of the web API to submit data to
@@ -289,6 +319,55 @@ The EnviR produces history messages at certain intervals. These are currently
 ignored, but it would be possible to implement a feature to submit these as a data
 bundle.
 
+=head2 CONFIGURATION
+
+A configuration file can be provided to the script using the parameter -config.
+This will be used to define names for the sensors connected to the EnviR. 
+
+=head3 SAMPLE CONFIG
+
+A sample configuration file:
+
+     [sensors]
+     sensor0="House"
+     sensor1="Fridge-Freezer"
+     sensor2="Family PC"
+     sensor3="Living Room TV"
+
+Up to 9 sensors (10 including sensor 0) can be defined. Sensors can also be 
+ommitted, for example, jumping from sensor 2 to 5. Sensors connected to the
+EnviR which are not in the configuration file will NOT be read!
+
+=head2 DEPENDENCIES
+
+You will need the following modules installed on your system to run this script:
+
+	XML::Simple
+	     Copyright 1999-2004 Grant McLean <grantm@cpan.org>
+	
+	LWP::Simple
+	     Copyright 1997-2004, Gisle Aas <gisle@ActiveState.com>
+	
+	HTTP::Request::Common
+	     Copyright 1997-2004, Gisle Aas <gisle@ActiveState.com>
+	
+	Device::SerialPort
+	     Copyright (C) 1999, 2000-2007 Bill Birthisel, Kees Cook
+	
+	Digest::MD5
+	     Copyright 1997-2004, Gisle Aas <gisle@ActiveState.com>
+	
+	Getopt::Long
+	     Copyright 1990,2009 by Johan Vromans <jvromans@squirrel.nl>
+	
+	Config::Tiny
+	     Copyright 2002-2011 Adam Kennedy. <adamk@cpan.org>
+	
+	Pod::Usage
+	     Marek Rouchal <marekr@cpan.org>, Brad Appleton <bradapp@enteract.com>
+
+
+All modules and their dependencies are available from CPAN.
 
 =head1 AUTHOR
 
