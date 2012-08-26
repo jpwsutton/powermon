@@ -1,5 +1,5 @@
 <?php
-require_once ($_SERVER['DOCUMENT_ROOT'] . "/includes/constants.inc");
+require_once ("constants.inc");
 require_once 'power_mysql.php';
 
 $power_mysql = new power_mysql();

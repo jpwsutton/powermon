@@ -9,7 +9,7 @@
 
 
 //Connect To Database
-require_once ($_SERVER['DOCUMENT_ROOT'] . "/includes/constants.inc");
+require_once ("constants.inc");
 $conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME) or 
 					  die('There was a problem connecting to the database.');
 
