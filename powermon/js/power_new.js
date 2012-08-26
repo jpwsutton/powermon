@@ -1,6 +1,6 @@
 /*
  * 
- * Javascript to render graphs for panda dashboard
+ * Javascript to render graphs for power monitor dashboard
  * 
  * James Sutton 2012
  * 
@@ -17,6 +17,7 @@ $(function (){
 	//var today = date.getFullYear() + "-" + ((date.getMonth() < 9 ? '0' : '') + (date.getMonth() + 1)) + "-" + date.getDate();
 	//date.setDate(date.getDate() + 1);
 	//var tomorrow = date.getFullYear() + "-" + ((date.getMonth() < 9 ? '0' : '') + (date.getMonth() + 1)) + "-" + ((date.getDate() < 9 ? '0' : '') + (date.getDate() + 1));
+
 	/* Variables */
 	var today = Date.today().toString("yyyy-MM-dd");
 	var tomorrow = Date.today().add(1).days().toString("yyyy-MM-dd");
@@ -28,7 +29,7 @@ $(function (){
 	var devices=["main", "james-pc", "sam-pc", "james-other"];
 	
 	//URL
-	var baseURL="includes/get_panda_data.php?";
+	var baseURL="includes/get_power_data.php?";
 	
 	// Energy Options
 	
@@ -54,17 +55,18 @@ $(function (){
 	var tempData = [];
 	
 	var tempPlaceholder = $("#tempPlaceholder");
-
-	var tempURL = "includes/get_panda_data.php?mode=temp&startDate=" + today + "%2000:00:00&endDate=" + tomorrow + "%2000:00:00&device=main";
+	var POWER_DATA_URL = "includes/get_power_data.php";
+	
+	var tempURL = POWER_DATA_URL + "?mode=temp&startDate=" + today + "%2000:00:00&endDate=" + tomorrow + "%2000:00:00&device=main";
 
 
 	// fetch one series, adding to what we got
     var alreadyFetched = {};
 	
-    var urls = ["includes/get_panda_data.php?mode=watts&startDate=" + today + "%2000:00:00&endDate=" + tomorrow + "%2000:00:00&device=main",
-    			"includes/get_panda_data.php?mode=watts&startDate=" + today + "%2000:00:00&endDate=" + tomorrow + "%2000:00:00&device=james-pc",
-    			"includes/get_panda_data.php?mode=watts&startDate=" + today + "%2000:00:00&endDate=" + tomorrow + "%2000:00:00&device=james-other",
-    			"includes/get_panda_data.php?mode=watts&startDate=" + today + "%2000:00:00&endDate=" + tomorrow + "%2000:00:00&device=sam-pc"];
+    var urls = [POWER_DATA_URL + "?mode=watts&startDate=" + today + "%2000:00:00&endDate=" + tomorrow + "%2000:00:00&device=main",
+                POWER_DATA_URL + "?mode=watts&startDate=" + today + "%2000:00:00&endDate=" + tomorrow + "%2000:00:00&device=james-pc",
+                POWER_DATA_URL + "?mode=watts&startDate=" + today + "%2000:00:00&endDate=" + tomorrow + "%2000:00:00&device=james-other",
+                POWER_DATA_URL + "?mode=watts&startDate=" + today + "%2000:00:00&endDate=" + tomorrow + "%2000:00:00&device=sam-pc"];
 
 	var done = 0;
 	var colourCount = 0;

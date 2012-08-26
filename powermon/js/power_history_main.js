@@ -1,6 +1,6 @@
 /*
  *
- * Javascript to render graphs for panda history
+ * Javascript to render graphs for power history
  *
  * James Sutton 2012
  *
@@ -47,7 +47,11 @@ $(function() {
 	var weekEndDate = Date.today().previous().monday().add(6).days().toString("yyyy-MM-dd");
 //console.log(weekEndDate);
 	//URL
-	var weekTotalEnergyURL = "includes/get_panda_history.php?mode=watts&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=main";
+	var POWER_HIST_URL = "includes/get_power_history.php";
+	
+	var weekTotalEnergyURL = POWER_HIST_URL + "?mode=watts&startDate=" 
+							+ weekStartDate + "%2000:00:00&endDate=" 
+							+ weekEndDate + "%2000:00:00&device=main";
 	//console.log(weekTotalEnergyURL);
 	// weekTotalEnergy Options
 
@@ -85,7 +89,7 @@ $(function() {
 	var alreadyFetched = {};
 
 	// then fetch the data with jQuery
-	function onDataReceived_weekTotalEnergyOptions(series) {
+	function onDataReceived_weendakTotalEnergyOptions(series) {
 
 		// extract the first coordinate pair so you can see that
 		// data is now an ordinary Javascript object
@@ -139,7 +143,7 @@ $(function() {
 	var monthEndDate = Date.today().clearTime().moveToLastDayOfMonth().toString("yyyy-MM-dd");
 
 	//URL
-	var monthTotalEnergyURL = "includes/get_panda_history.php?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=main";
+	var monthTotalEnergyURL = POWER_HIST_URL + "?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=main";
 	//console.log(monthTotalEnergyURL);
 	// weekTotalEnergy Options
 
@@ -230,7 +234,7 @@ $(function() {
 	var yearEndDate = Date.today().clearTime().toString("yyyy") + "-12-31";
 
 	//URL
-	var yearTotalEnergyURL = "includes/get_panda_history.php?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=main";
+	var yearTotalEnergyURL = POWER_HIST_URL + "?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=main";
 	//console.log(yearTotalEnergyURL);
 	// weekTotalEnergy Options
 
@@ -319,9 +323,9 @@ $(function() {
 	
 	//URL
 
-	var weekApplianceEnergyURLs = ["includes/get_panda_history.php?mode=watts&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=james-pc",
-    			"includes/get_panda_history.php?mode=watts&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=james-other",
-    			"includes/get_panda_history.php?mode=watts&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=sam-pc"];
+	var weekApplianceEnergyURLs = [POWER_HIST_URL + "?mode=watts&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=james-pc",
+	                               POWER_HIST_URL + "?mode=watts&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=james-other",
+	                               POWER_HIST_URL + "?mode=watts&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=sam-pc"];
 
 	var weekAppliancedone = 0;
 	var weekAppliancecolourCount = 1;
@@ -398,9 +402,9 @@ $(function() {
 	
 	//URL
 
-	var monthApplianceEnergyURLs = ["includes/get_panda_history.php?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=james-pc",
-    			"includes/get_panda_history.php?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=james-other",
-    			"includes/get_panda_history.php?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=sam-pc"];
+	var monthApplianceEnergyURLs = [POWER_HIST_URL + "?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=james-pc",
+	                                POWER_HIST_URL + "?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=james-other",
+	                                POWER_HIST_URL + "?mode=watts&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=sam-pc"];
 
 	var monthAppliancedone = 0;
 	var monthAppliancecolourCount = 1;
@@ -478,9 +482,9 @@ $(function() {
 	
 	//URL
 
-	var yearApplianceEnergyURLs = ["includes/get_panda_history.php?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=james-pc",
-    			"includes/get_panda_history.php?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=james-other",
-    			"includes/get_panda_history.php?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=sam-pc"];
+	var yearApplianceEnergyURLs = [POWER_HIST_URL + "?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=james-pc",
+	                               POWER_HIST_URL + "?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=james-other",
+	                               POWER_HIST_URL + "?mode=watts&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=sam-pc"];
 
 	var yearAppliancedone = 0;
 	var yearAppliancecolourCount = 1;
@@ -560,7 +564,7 @@ $(function() {
 	
 	//URL
 
-	var weektempURLs = ["includes/get_panda_history.php?mode=temp&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=main"];
+	var weektempURLs = [POWER_HIST_URL + "?mode=temp&startDate=" + weekStartDate + "%2000:00:00&endDate=" + weekEndDate + "%2000:00:00&device=main"];
 
 	var weektempdone = 0;
 	var weektempcolourCount = 4;
@@ -638,7 +642,7 @@ $(function() {
 
 	//URL
 
-	var monthtempURLs = ["includes/get_panda_history.php?mode=temp&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=main"];
+	var monthtempURLs = [POWER_HIST_URL + "?mode=temp&startDate=" + monthStartDate + "%2000:00:00&endDate=" + monthEndDate + "%2000:00:00&device=main"];
 
 	var monthtempdone = 0;
 	var monthtempcolourCount = 4;
@@ -716,7 +720,7 @@ $(function() {
 
 	//URL
 
-	var yeartempURLs = ["includes/get_panda_history.php?mode=temp&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=main"];
+	var yeartempURLs = [POWER_HIST_URL + "?mode=temp&startDate=" + yearStartDate + "%2000:00:00&endDate=" + yearEndDate + "%2000:00:00&device=main"];
 
 	var yeartempdone = 0;
 	var yeartempcolourCount = 4;
@@ -793,6 +797,6 @@ $(function() {
 
 	var executionTime = stop - start;
 
-	console.log("panda_history_main.js executed in " + executionTime + " milliseconds");	
+	console.log("power_history_main.js executed in " + executionTime + " milliseconds");	
 
 });

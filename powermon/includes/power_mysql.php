@@ -1,11 +1,11 @@
 <?php
 require_once ($_SERVER['DOCUMENT_ROOT'] . "/includes/constants.php");
 
-class panda_mysql {
+class power_mysql {
 	private $conn;
 	
 	function __construct() {
-		$this->conn = new mysqli(PANDA_DB_SERVER, PANDA_DB_USER, PANDA_DB_PASSWORD, PANDA_DB_NAME) or 
+		$this->conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME) or 
 					  die('There was a problem connecting to the database.');
 	}
 	
