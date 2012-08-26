@@ -6,7 +6,7 @@ $page_javascripts[0] = "js/flot/jquery.min.js";
 $page_javascripts[1] = "js/flot/jquery.flot.min.js";
 $page_javascripts[2] = "js/power_new.js";
 $page_javascripts[3] = "js/date.js";
-include "includes/header.php";
+include "includes/header.inc";
 
 ?>
 
@@ -22,10 +22,10 @@ include "includes/header.php";
     <br />
     <br />
     <div id="liveusage" class="center">
-    	<h2 class="center" >This Day has Cost <span id="cost"></span></h3>
+    	<h2 class="center">This Day has Cost <span id="cost"></span></h2>
     </div>
 
 <?php
-include "includes/footer.php";
+include "includes/footer.inc";
 ?>
 
