@@ -7,7 +7,7 @@
 <link rel="stylesheet" type="text/css" href="css/menu.css" />
 <link rel="stylesheet" type="text/css" href="css/jgauge.css"  />
 <link rel="icon" type="image/png" href="images/favicon.png" />
-<title>jsutton.co.uk | <?php print($page_title);?></title>
+<title><?php print($page_title);?></title>
 <?php
 if(isset($page_javascripts)){
 	foreach($page_javascripts as $script){

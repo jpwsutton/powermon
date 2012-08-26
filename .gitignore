@@ -1,0 +1,6 @@
+.buildpath
+.settings/*
+.project
+powermon/.settings/*
+powermon/config/*
+

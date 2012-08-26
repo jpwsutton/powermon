@@ -4,9 +4,9 @@ $page_title = 'PowerMon - History';
 $page_title_image = 'images/title_image.png';
 $page_javascripts[0] = "js/flot/jquery.min.js";
 $page_javascripts[1] = "js/flot/jquery.flot.min.js";
-$page_javascripts[2] = "js/panda_history_main.js";
+$page_javascripts[2] = "js/power_history_main.js";
 $page_javascripts[3] = "js/date.js";
-include 'includes/header.php';
+include 'includes/header.inc';
 
 ?>
 
@@ -46,6 +46,6 @@ include 'includes/header.php';
 	<div id="yeartemp" class="center" style="width:600px;height:300px;"></div>
 	<br />
 <?php
-include 'includes/footer.php';
+include 'includes/footer.inc';
 ?>
 

@@ -1,8 +1,8 @@
 <?php
 
 //Connect To Database
-require_once ($_SERVER['DOCUMENT_ROOT'] . "/includes/constants.php");
-$conn = new mysqli(POWERMON_DB_SERVER, POWERMON_DB_USER, POWERMON_DB_PASSWORD, POWERMON_DB_NAME) or 
+require_once ("constants.inc");
+$conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME) or 
 					  die('There was a problem connecting to the database.');
 					  
 					  
@@ -17,39 +17,31 @@ if( $mode == "watts"){
 	$endDate = $_GET['endDate'];
 	$device = $_GET['device'];
 
-	$query = "SELECT watts, datetime FROM power_data_dayaverage WHERE datetime BETWEEN '$startDate' AND '$endDate' AND device = '$device' ORDER BY datetime";
+	$query = "SELECT watts, datetime FROM power_data_records WHERE datetime BETWEEN '$startDate' AND '$endDate' AND device = '$device'";
 	#print("QUERY: $query</br>");
-
 	if($result = $conn->query($query)){
-
 		print("{\n");
 		print("\"label\": \"$device (Watts)\", \"yaxis\": 1,\n");
 		print("\"data\": ");
 		print("[");
 		$i = 0;
-		
-	    /* determine number of rows result set */
+		/* determine number of rows result set */
 	    $row_cnt = $result->num_rows;
 		if($row_cnt == 0){
 			print("[0,0]");
 		}
 			/* fetch associative array */
 			while($row = $result->fetch_assoc()){
-				
 				if ($i != 0){
-				print(",");
-			}
-			print ("[");
-			// Evaluates to true because $var is empty
-			
-			$timeBefore = strtotime($row['datetime']);
-			print($timeBefore * 1000);
-			
-			print (",");
-			
-			print($row['watts']);
-			
-			print("]");
+				 print(",");
+			 }
+			 print ("[");
+			 
+			 $timeBefore = strtotime($row['datetime']);
+			 print($timeBefore * 1000);
+			 print (",");
+			 print($row['watts']);
+			 print("]");
 			$i = 1;
 			}
 		print("]}\n");
@@ -63,7 +55,7 @@ elseif ($mode == "temp"){
 	$endDate = $_GET['endDate'];
 	$device = $_GET['device'];
 		
-	$query = "SELECT temp, datetime FROM power_data_dayaverage WHERE datetime BETWEEN '$startDate' AND '$endDate' AND device = '$device' ORDER BY datetime";
+	$query = "SELECT temp, TIME(datetime) FROM power_data_records WHERE datetime BETWEEN '$startDate' AND '$endDate' AND device = '$device'";
 	#print("QUERY: $query</br>");
 	if($result = $conn->query($query)){
 		print("{\n");
@@ -83,7 +75,7 @@ elseif ($mode == "temp"){
 			 }
 			 print ("[");
 			 
-			 $timeBefore = strtotime($row['datetime']);
+			 $timeBefore = strtotime($row['TIME(datetime)']);
 			 print($timeBefore * 1000);
 			 print (",");
 			 print($row['temp']);
@@ -96,7 +88,6 @@ elseif ($mode == "temp"){
 		}
 
 }
-
 mysqli_close($conn); 
 
 
