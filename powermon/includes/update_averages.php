@@ -11,39 +11,42 @@
 //Connect to the Database
 //Connect To Database
 require_once ("constants.inc");
+require_once ("sensors.inc");
+
 $conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME) or 
 					  die('There was a problem connecting to the database.');
-					  
+
+date_default_timezone_set("Europe/London");
 $date = date("Y-m-d", time() - (60*60*24) );
 
-//Device query
-$query_devices = "SELECT name FROM `power_devices`";
+$s_obj = new Sensors();
+$sensors = $s_obj->getSensors();
 
-
-if($result = $conn->query($query_devices)){
-	while($row = $result->fetch_assoc()){
-		echo $row['name'];
-		$device = $row['name'];
-		//Generate Query to update the average
-		$query_update = "REPLACE INTO
+foreach($sensors as $device){
+	echo $device;
+	//Generate Query to update the average
+	$query_update = "INSERT INTO
 						`power_data_dayaverage`
 						(device, watts, temp, datetime)
-						SELECT
+					SELECT
 						device, AVG(watts), AVG(temp), DATE(datetime)
-						FROM
+					FROM
 						`power_data_records`
-						WHERE
-						DATE_SUB(`datetime`,INTERVAL 1 DAY) AND DATE(`datetime`) = DATE('$date') AND device = '$device'
-						
-						";
-		if($result2 = $conn->query($query_update)){
-			echo " - Success<br />";	
-		}else{
-			echo " - Failure<br />";
-		}
+					WHERE
+						DATE_SUB(`datetime`,INTERVAL 1 DAY) 
+						AND DATE(`datetime`) = DATE($date) 
+						AND device = '$device'";
 	
-	}	
+	echo "<br />" . $query_update . "<br />";
+	
+	if($result = $conn->query($query_update)) {
+		echo " - Success<br />";	
+	} else {
+		echo " - Failure<br /> ";
+		echo mysql_error();
+	}
 }
+
 
 
 
