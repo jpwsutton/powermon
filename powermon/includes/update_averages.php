@@ -1,15 +1,13 @@
 <?php
 
 /*
- * 
  * Script to update Averages for power and temp data
- * 
+ *
  * james@jsutton.co.uk 2012
- * 
+ *
  */
 
 //Connect to the Database
-//Connect To Database
 require_once ("constants.inc");
 require_once ("sensors.inc");
 
@@ -25,22 +23,17 @@ $sensors = $s_obj->getSensors();
 foreach($sensors as $device){
 	echo $device;
 	//Generate Query to update the average
-	$query_update = "INSERT INTO
-						`power_data_dayaverage`
-						(device, watts, temp, datetime)
-					SELECT
-						device, AVG(watts), AVG(temp), DATE(datetime)
-					FROM
-						`power_data_records`
-					WHERE
-						DATE_SUB(`datetime`,INTERVAL 1 DAY) 
-						AND DATE(`datetime`) = DATE($date) 
+	$query_update = "REPLACE INTO `power_data_dayaverage` (device, watts, temp, datetime)
+					SELECT device, AVG(watts), AVG(temp), DATE(datetime)
+					FROM `power_data_records`
+					WHERE DATE_SUB(`datetime`,INTERVAL 1 DAY)
+						AND DATE(`datetime`) = DATE(\"$date\")
 						AND device = '$device'";
-	
-	echo "<br />" . $query_update . "<br />";
-	
+
+//	echo "<br />" . $query_update . "<br />";
+
 	if($result = $conn->query($query_update)) {
-		echo " - Success<br />";	
+		echo " - Success<br />";
 	} else {
 		echo " - Failure<br /> ";
 		echo mysql_error();
